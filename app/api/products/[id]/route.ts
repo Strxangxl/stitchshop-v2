@@ -2,14 +2,18 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../../../lib/models/dbConnect";
 import Product from "@/lib/models/Product";
 
+// GET /api/products/[id] - Handled as an async Promise for Next.js 15+ compatibility
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> }, // Type defined as a Promise
 ) {
   try {
     await dbConnect();
 
-    const product = await Product.findById(params.id);
+    // Await the routing params completely before extracting properties
+    const { id } = await params;
+
+    const product = await Product.findById(id);
 
     if (!product) {
       return NextResponse.json(

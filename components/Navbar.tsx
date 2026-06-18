@@ -17,7 +17,7 @@ export default function Navbar() {
             href="/"
             className="text-lg font-bold tracking-wider text-red-600 transition-opacity hover:opacity-80"
           >
-            STITCHSHOP
+            StitchShopv2
           </Link>
         </div>
 
