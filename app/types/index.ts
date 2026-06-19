@@ -61,3 +61,11 @@ export interface IOrder {
   deliveredAt?: string;
   createdAt?: string;
 }
+
+export interface IUserSession {
+  _id: string;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  token: string;
+}

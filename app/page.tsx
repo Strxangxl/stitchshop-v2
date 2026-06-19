@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchProducts } from "@/store/productSlice";
 import ProductCard from "@/components/ProductCard";
+import ProductSkeleton from "@/components/ProductSkeleton"; // Imported your skeleton component
 
 export default function HomePage() {
   const dispatch = useAppDispatch();
@@ -30,13 +31,7 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* Conditional UI Rendering Blocks Based on Lifecycle States */}
-      {loading && (
-        <div className="flex h-64 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-black" />
-        </div>
-      )}
-
+      {/* Error Boundary Notification Block */}
       {error && (
         <div className="rounded-md bg-red-50 p-4 my-4">
           <p className="text-sm font-medium text-red-800">
@@ -45,12 +40,16 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Responsive Grid Layout Matching Mobile, Tablet, and Desktop Breakpoints */}
-      {!loading && !error && (
+      {/* Main Grid View Area */}
+      {!error && (
         <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-          {products.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
+          {loading
+            ? // Swapped the single spinner container for a structural layout placeholder loop
+              [...Array(4)].map((_, index) => <ProductSkeleton key={index} />)
+            : // Render your actual live database data cards when fulfilled
+              products.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
         </div>
       )}
 

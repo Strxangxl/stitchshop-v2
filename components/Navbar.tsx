@@ -1,41 +1,82 @@
 "use client";
 
+import { useEffect, useState } from "react"; // Added useState
 import Link from "next/link";
-import { useAppSelector } from "@/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { logoutUser } from "@/store/authSlice";
 
 export default function Navbar() {
+  const dispatch = useAppDispatch();
+
+  // Local state flag to track if the browser has finished mounting the component
+  const [mounted, setMounted] = useState(false);
+
   const { cartItems } = useAppSelector((state) => state.cart);
+  const { userInfo } = useAppSelector((state) => state.auth);
 
   const totalItemsCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
+
+  // Set mounted flag to true immediately upon client-side execution loop
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleLogout = () => {
+    dispatch(logoutUser());
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo Branding Link Matching Image */}
+        {/* Logo Branding Link */}
         <div className="flex-1 md:flex-none">
           <Link
             href="/"
             className="text-lg font-bold tracking-wider text-red-600 transition-opacity hover:opacity-80"
           >
-            StitchShopv2
+            STITCHSHOP
           </Link>
         </div>
 
         {/* Navigation Actions Menu */}
         <div className="flex items-center gap-x-6">
-          {/* Auth Links matching image */}
-          <Link
-            href="/login"
-            className="text-sm font-medium text-gray-700 hover:text-gray-900"
-          >
-            Login
-          </Link>
-          <Link
-            href="/register"
-            className="text-sm font-medium text-gray-700 hover:text-gray-900"
-          >
-            Register
-          </Link>
+          {/* Hydration Guard Loop: 
+            Render absolute blank placeholders until client mounting is settled.
+            This eliminates server-client text variations entirely.
+          */}
+          {!mounted ? (
+            <div className="w-24 h-4 bg-transparent animate-pulse" />
+          ) : userInfo ? (
+            <div className="flex items-center gap-x-4">
+              <span className="text-sm font-medium text-gray-700">
+                Hi,{" "}
+                <span className="font-semibold text-black">
+                  {userInfo.name}
+                </span>
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-sm font-medium text-red-600 hover:text-red-500 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Register
+              </Link>
+            </>
+          )}
 
           {/* User Profile Icon Link */}
           <Link href="/profile" className="text-gray-600 hover:text-gray-900">
@@ -72,8 +113,7 @@ export default function Navbar() {
                 d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
               />
             </svg>
-
-            {totalItemsCount > 0 && (
+            {mounted && totalItemsCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-[10px] font-bold text-white">
                 {totalItemsCount}
               </span>
