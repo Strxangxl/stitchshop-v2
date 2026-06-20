@@ -1,71 +1,64 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addToCart, removeFromCart } from "@/store/cartSlice";
+import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react"; // Utilizing clean lucide icons
 
 export default function CartPage() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
 
-  // Pull the entire cart department status out of the global store warehouse
-  const { cartItems, itemsPrice, shippingPrice, taxPrice, totalPrice } =
-    useAppSelector((state) => state.cart);
+  const { cartItems, itemsPrice } = useAppSelector((state) => state.cart);
 
-  // Updates item quantity when the user alters the select element option
-  const updateQtyHandler = (
-    product: string,
-    name: string,
-    image: string,
-    price: number,
-    countInStock: number,
-    qty: number,
-  ) => {
-    dispatch(
-      addToCart({
-        product,
-        name,
-        image,
-        price,
-        countInStock,
-        qty,
-      }),
-    );
+  const updateCartHandler = (item: any, qty: number) => {
+    dispatch(addToCart({ ...item, qty }));
   };
 
-  // Triggers array filtration to drop the product item entry entirely
   const removeFromCartHandler = (id: string) => {
     dispatch(removeFromCart(id));
   };
 
-  return (
-    <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-10">
-        Shopping Cart
-      </h1>
+  const checkoutHandler = () => {
+    router.push("/login?redirect=/shipping");
+  };
 
-      {cartItems.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-300 p-12 text-center bg-white">
-          <p className="text-sm text-gray-500 mb-4">
-            Your shopping cart is completely empty.
-          </p>
-          <Link
-            href="/"
-            className="text-sm font-semibold text-red-600 hover:text-red-500"
-          >
-            Go Shopping &rarr;
-          </Link>
-        </div>
-      ) : (
-        <div className="lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12 xl:gap-x-16">
-          {/* Left Side: Cart Items List */}
-          <section className="lg:col-span-7 bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <ul role="list" className="divide-y divide-gray-200">
+  return (
+    // Outer canvas forces white edge-to-edge across the entire viewport height
+    <div className="w-full min-h-screen bg-white text-gray-900">
+      {/* Constrained internal padding wrapper */}
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 bg-white">
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-10">
+          Shopping Cart
+        </h1>
+
+        {cartItems.length === 0 ? (
+          <div className="text-center py-20 border border-dashed border-gray-200 rounded-lg bg-gray-50/50">
+            <ShoppingBag
+              className="mx-auto h-12 w-12 text-gray-400 mb-4"
+              strokeWidth={1}
+            />
+            <p className="text-sm text-gray-500 mb-6">
+              Your shopping cart is completely empty.
+            </p>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center rounded-md bg-black px-6 py-2 text-sm font-medium text-white hover:bg-red-600 transition-colors"
+            >
+              Continue Shopping
+            </Link>
+          </div>
+        ) : (
+          <div className="lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12">
+            {/* Left Side: Product Line Items List */}
+            <section className="lg:col-span-7 border-t border-gray-200 divide-y divide-gray-200">
               {cartItems.map((item) => (
-                <li
+                <div
                   key={item.product}
-                  className="flex py-6 first:pt-0 last:pb-0"
+                  className="flex py-6 sm:py-6 gap-6 items-center justify-between"
                 >
-                  <div className="h-24 w-24 shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+                  <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 bg-gray-50">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -73,128 +66,84 @@ export default function CartPage() {
                     />
                   </div>
 
-                  <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
-                    <div className="flex justify-between">
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900">
-                          <Link
-                            href={`/product/${item.product}`}
-                            className="hover:text-gray-700"
-                          >
-                            {item.name}
-                          </Link>
-                        </h3>
-                        <p className="mt-1 text-sm font-semibold text-gray-900">
-                          ${item.price.toFixed(2)}
-                        </p>
+                  <div className="flex flex-1 flex-col justify-between sm:grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Link
+                        href={`/product/${item.product}`}
+                        className="font-semibold text-gray-900 hover:text-red-600 transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                      <p className="mt-1 text-sm font-bold text-gray-900">
+                        ${item.price.toFixed(2)}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between sm:justify-end gap-6">
+                      {/* Quantity Selector Group */}
+                      <div className="flex items-center border border-gray-300 rounded-md bg-white">
+                        <button
+                          type="button"
+                          disabled={item.qty <= 1}
+                          onClick={() => updateCartHandler(item, item.qty - 1)}
+                          className="p-1.5 text-gray-500 hover:text-black disabled:opacity-30"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="px-3 text-sm font-medium text-gray-900">
+                          {item.qty}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={item.qty >= item.countInStock}
+                          onClick={() => updateCartHandler(item, item.qty + 1)}
+                          className="p-1.5 text-gray-500 hover:text-black disabled:opacity-30"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
                       </div>
 
-                      {/* Delete Product Icon Action Button */}
+                      {/* Remove Trash Button */}
                       <button
                         type="button"
                         onClick={() => removeFromCartHandler(item.product)}
-                        className="text-gray-400 hover:text-red-500 p-1 transition-colors"
+                        className="text-gray-400 hover:text-red-600 transition-colors p-1"
                       >
-                        <svg
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth="1.5"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
+                        <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
-
-                    <div className="flex items-center justify-between pt-4">
-                      {/* Sub-item Qty Modification Dropdown */}
-                      <div className="flex items-center gap-x-2 text-sm">
-                        <label
-                          htmlFor={`quantity-${item.product}`}
-                          className="text-gray-500"
-                        >
-                          Qty:
-                        </label>
-                        <select
-                          id={`quantity-${item.product}`}
-                          value={item.qty}
-                          onChange={(e) =>
-                            updateQtyHandler(
-                              item.product,
-                              item.name,
-                              item.image,
-                              item.price,
-                              item.countInStock,
-                              Number(e.target.value),
-                            )
-                          }
-                          className="rounded-md border border-gray-300 bg-white py-1 px-2 text-sm font-medium shadow-sm focus:border-black focus:outline-none"
-                        >
-                          {[...Array(item.countInStock).keys()].map((x) => (
-                            <option key={x + 1} value={x + 1}>
-                              {x + 1}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <p className="text-sm font-medium text-gray-900">
-                        Total: ${(item.price * item.qty).toFixed(2)}
-                      </p>
-                    </div>
                   </div>
-                </li>
+                </div>
               ))}
-            </ul>
-          </section>
+            </section>
 
-          {/* Right Side: Price Breakdown Summary Panel */}
-          <section className="mt-16 rounded-lg border border-gray-200 bg-white p-6 shadow-sm sm:p-8 lg:col-span-5 lg:mt-0">
-            <h2 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-4">
-              Order Summary
-            </h2>
+            {/* Right Side: Order Summary Checkout Summary Panel */}
+            <section className="mt-16 rounded-lg border border-gray-200 bg-gray-50/70 p-6 sm:p-8 lg:col-span-5 lg:mt-0 space-y-6">
+              <h2 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-4">
+                Order Summary
+              </h2>
 
-            <dl className="mt-6 space-y-4 text-sm text-gray-600">
-              <div className="flex items-center justify-between">
-                <dt>Subtotal</dt>
-                <dd className="font-medium text-gray-900">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">
+                  Subtotal ({cartItems.reduce((acc, item) => acc + item.qty, 0)}{" "}
+                  items)
+                </span>
+                <span className="font-bold text-gray-900">
                   ${itemsPrice.toFixed(2)}
-                </dd>
+                </span>
               </div>
-              <div className="flex items-center justify-between border-t border-gray-100 pt-4">
-                <dt>Shipping Estimate</dt>
-                <dd className="font-medium text-gray-900">
-                  ${shippingPrice.toFixed(2)}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between border-t border-gray-100 pt-4">
-                <dt>Tax Estimate (15%)</dt>
-                <dd className="font-medium text-gray-900">
-                  ${taxPrice.toFixed(2)}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between border-t border-gray-200 pt-4 text-base font-bold text-gray-900">
-                <dt>Order Total</dt>
-                <dd>${totalPrice.toFixed(2)}</dd>
-              </div>
-            </dl>
 
-            <div className="mt-6">
               <button
                 type="button"
-                className="w-full rounded-md border border-transparent bg-black py-3 px-4 text-base font-medium text-white shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+                onClick={checkoutHandler}
+                className="w-full flex items-center justify-center rounded-md border border-transparent bg-black py-3 px-4 text-base font-medium text-white hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
                 Proceed to Checkout
               </button>
-            </div>
-          </section>
-        </div>
-      )}
-    </main>
+            </section>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
