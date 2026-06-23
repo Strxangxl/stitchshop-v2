@@ -35,7 +35,11 @@ export default function Navbar() {
             href="/"
             className="text-lg font-bold tracking-wide text-red-600 transition-opacity hover:opacity-80"
           >
-            STITCHSHOP
+            {/* Visible only on mobile screens (below 768px layout break) */}
+            <span className="block md:hidden">SS</span>
+
+            {/* Hidden on mobile, forced visible on medium viewports and up */}
+            <span className="hidden md:block">STITCHSHOP</span>
           </Link>
         </div>
 
